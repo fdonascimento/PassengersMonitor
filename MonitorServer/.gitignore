@@ -1,3 +1,4 @@
 ENV/*
 *.sqlite3
 .idea
+*.pyc
