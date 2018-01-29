@@ -6,6 +6,6 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ('latitude', 'longitude', 'device_identification', 'date_time')
+        fields = ('latitude', 'longitude', 'device_identification', 'send_date')
 
 
