@@ -16,6 +16,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import java.util.Date;
+
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+
 public class MainActivity extends AppCompatActivity {
 
     private LocationManager locationManager;
@@ -24,12 +30,17 @@ public class MainActivity extends AppCompatActivity {
     private double latitudeGPS;
     private double longitudeGPS;
     private int permissionCheck;
+    private GpsReceiverService gpsReceiver;
+    private String androidId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        configureServerClient();
         textLatitude = findViewById(R.id.textLatitude);
         textLongitude = findViewById(R.id.textLongitude);
         checkGpsPermission();
@@ -38,15 +49,41 @@ public class MainActivity extends AppCompatActivity {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         }
 
-        setLasLocation();
+        setLastLocation();
     }
 
-    private void setLasLocation() {
+    private void configureServerClient() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://192.168.122.1:8000")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+
+        gpsReceiver = retrofit.create(GpsReceiverService.class);
+    }
+
+    private void sendLocation(Double latitude, Double longitude) {
+        LocationInfo locationInfo = new LocationInfo();
+        locationInfo.setLatitude(latitude);
+        locationInfo.setLongitude(longitude);
+        locationInfo.setSendDate(new Date());
+        locationInfo.setDeviceIdentification(androidId);
+
+        gpsReceiver.sendLocationInfo(locationInfo);
+    }
+
+    private void setLastLocation() {
         if(permissionCheck == PackageManager.PERMISSION_GRANTED && isLocationEnabled()) {
             try {
                 Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                textLatitude.setText(String.valueOf(location.getLatitude()));
-                textLongitude.setText(String.valueOf(location.getLongitude()));
+                if (location != null) {
+                    textLatitude.setText(String.valueOf(location.getLatitude()));
+                    textLongitude.setText(String.valueOf(location.getLongitude()));
+                    sendLocation(location.getLatitude(), location.getLongitude());
+                } else {
+                    textLatitude.setText("GPS signal not found");
+                    textLongitude.setText("GPS signal not found");
+                }
             } catch (SecurityException e) {
                 showDialogError(e.getMessage());
             }
@@ -133,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     textLongitude.setText(String.valueOf(longitudeGPS));
                     textLatitude.setText(String.valueOf(latitudeGPS));
+                    sendLocation(latitudeGPS, longitudeGPS);
                 }
             });
         }
