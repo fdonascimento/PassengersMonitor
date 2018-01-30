@@ -2,6 +2,8 @@ package com.example.fagner.signalsender;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -14,7 +16,7 @@ public class LocationInfo {
     @SerializedName("device_identification")
     private String deviceIdentification;
     @SerializedName("send_date")
-    private Date sendDate;
+    private String sendDate;
 
     public Double getLatitude() {
         return latitude;
@@ -40,11 +42,13 @@ public class LocationInfo {
         this.deviceIdentification = deviceIdentification;
     }
 
-    public Date getSendDate() {
+    public String getSendDate() {
         return sendDate;
     }
 
     public void setSendDate(Date sendDate) {
-        this.sendDate = sendDate;
+        //The date must be in the format specified in the service
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        this.sendDate = dateFormat.format(sendDate);
     }
 }
