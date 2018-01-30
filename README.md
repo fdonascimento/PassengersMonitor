@@ -21,6 +21,4 @@ Requirements:
 
 1. python 2.7
 2. django 1.11
-3. djangorestframework 3.7.7​
-26
-Para executar 
+3. djangorestframework 3.7.7 
