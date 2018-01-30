@@ -9,18 +9,21 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.widget.TextView;
 
 import java.util.Date;
 
-import retrofit2.GsonConverterFactory;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void configureServerClient() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.122.1:8000")
+                //The base url must end with slash
+                .baseUrl("http://192.168.1.4:8000/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
@@ -69,7 +73,9 @@ public class MainActivity extends AppCompatActivity {
         locationInfo.setSendDate(new Date());
         locationInfo.setDeviceIdentification(androidId);
 
-        gpsReceiver.sendLocationInfo(locationInfo);
+        Call<ResponseBody> response = gpsReceiver.sendLocationInfo(locationInfo);
+        //The request is made only after this method call
+        response.enqueue(sendLocationCallback());
     }
 
     private void setLastLocation() {
@@ -138,6 +144,19 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isLocationEnabled() {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    private Callback<ResponseBody> sendLocationCallback() {
+        return new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            }
+        };
     }
 
     private void showEnableGpsAlert() {
