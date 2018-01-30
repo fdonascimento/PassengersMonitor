@@ -1,7 +1,6 @@
 package com.example.fagner.signalsender;
 
-import java.util.Map;
-
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
@@ -12,6 +11,7 @@ import retrofit2.http.POST;
 
 public interface GpsReceiverService {
 
-    @POST("locations/locations")
-    Call<LocationInfo> sendLocationInfo(@Body LocationInfo locationInfo);
+    //The url must end with slash
+    @POST("locations/locations/")
+    Call<ResponseBody> sendLocationInfo(@Body LocationInfo locationInfo);
 }
